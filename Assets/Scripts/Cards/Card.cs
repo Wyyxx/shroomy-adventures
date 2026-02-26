@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.EventSystems; // NUEVO: Necesario para detectar clics avanzados (izquierdo y derecho)
 
-public class Card : MonoBehaviour
+// CAMBIO ARQUITECTÓNICO: Agregamos IPointerClickHandler a la definición de la clase
+public class Card : MonoBehaviour, IPointerClickHandler 
 {
     public CardData cardData;
 
@@ -13,80 +15,62 @@ public class Card : MonoBehaviour
     public TextMeshProUGUI descriptionText;
     public TextMeshProUGUI costText;
 
-    private bool isSelected = false;
     private Vector3 originalPosition;
-    private Button button;
 
-    void Awake()
-    {
-        button = GetComponent<Button>();
-        if (button == null)
-            button = gameObject.AddComponent<Button>();
-
-        button.onClick.AddListener(OnCardClicked);
-    }
+    // ELIMINADO: Ya no necesitamos la variable 'Button button' ni el Awake() que lo configuraba.
 
     public void InitializeCard(CardData data)
     {
         cardData = data;
-        isSelected = false;
         UpdateCardVisuals();
     }
 
-    void OnCardClicked()
+    // NUEVA FUNCIÓN: Reemplaza a 'OnCardClicked'. Intercepta cualquier clic del mouse sobre la carta.
+    public void OnPointerClick(PointerEventData eventData)
     {
         if (!CombatManager.Instance.isPlayerTurn) return;
 
-        if (isSelected)
+        // Si hacemos Clic Izquierdo (Seleccionar / Jugar)
+        if (eventData.button == PointerEventData.InputButton.Left)
         {
-            // Si ya está seleccionada, deseleccionar
-            Deselect();
+            CombatManager.Instance.HandleCardClick(this);
+        }
+        // Si hacemos Clic Derecho (Cancelar / Deseleccionar)
+        else if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            // Solo deseleccionamos si esta es la carta que está actualmente activa
+            if (CombatManager.Instance.activeCard == this)
+            {
+                CombatManager.Instance.DeselectActiveCard();
+            }
+        }
+    }
+
+    public void SetVisualSelection(bool isSelectedByManager)
+    {
+        if (isSelectedByManager)
+        {
+            // Guardamos la posición original justo antes de levantarla
+            originalPosition = transform.localPosition;
+
+            transform.localPosition = new Vector3(
+                originalPosition.x,
+                originalPosition.y + 40f,
+                originalPosition.z
+            );
+
+            cardBackground.color = new Color(
+                Mathf.Min(cardBackground.color.r + 0.3f, 1f),
+                Mathf.Min(cardBackground.color.g + 0.3f, 1f),
+                cardBackground.color.b
+            );
         }
         else
         {
-            // Si hay otra carta seleccionada, no permitir
-            if (CombatManager.Instance.GetSelectedCount() >= 1)
-            {
-                Debug.Log("Ya tienes una carta seleccionada, juégala primero!");
-                return;
-            }
-
-            if (CombatManager.Instance.currentEnergy < cardData.energyCost)
-            {
-                Debug.Log("No tienes suficiente energía!");
-                return;
-            }
-
-            Select();
+            // La devolvemos a su lugar
+            transform.localPosition = originalPosition;
+            UpdateCardVisuals(); // Esto restaura los colores originales
         }
-    }
-
-    public void Select()
-    {
-        isSelected = true;
-        originalPosition = transform.localPosition;
-
-        transform.localPosition = new Vector3(
-            originalPosition.x,
-            originalPosition.y + 40f,
-            originalPosition.z
-        );
-
-        cardBackground.color = new Color(
-            Mathf.Min(cardBackground.color.r + 0.3f, 1f),
-            Mathf.Min(cardBackground.color.g + 0.3f, 1f),
-            cardBackground.color.b
-        );
-
-        CombatManager.Instance.SelectCard(cardData);
-    }
-
-    public void Deselect()
-    {
-        isSelected = false;
-        transform.localPosition = originalPosition;
-        UpdateCardVisuals();
-        CombatManager.Instance.DeselectCard(cardData);
     }
 
     void UpdateCardVisuals()

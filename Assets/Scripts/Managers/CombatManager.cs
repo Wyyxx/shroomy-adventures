@@ -19,7 +19,10 @@ public class CombatManager : MonoBehaviour
     public List<CardData> deck = new List<CardData>();
     public List<CardData> hand = new List<CardData>();
     public List<CardData> discardPile = new List<CardData>();
-    public List<CardData> selectedCards = new List<CardData>();
+    
+    // CAMBIO ARQUITECTÓNICO: Reemplazamos la lista de selectedCards por una única referencia al script físico.
+    [Header("Estado de Selección")]
+    public Card activeCard; 
 
     private List<CardData> drawPile = new List<CardData>();
 
@@ -59,7 +62,10 @@ public class CombatManager : MonoBehaviour
         currentEnergy = maxEnergy;
         playerActionsLeft = maxPlayerActions;
         Player.Instance.currentBlock = 0;
-        selectedCards.Clear();
+        
+        // Limpiamos la carta activa en lugar de la lista
+        activeCard = null; 
+        
         DrawCards(handSize);
         Debug.Log($"--- Turno del Jugador | Acciones: {playerActionsLeft} ---");
     }
@@ -80,66 +86,81 @@ public class CombatManager : MonoBehaviour
             CardData card = drawPile[0];
             drawPile.RemoveAt(0);
             hand.Add(card);
+            
+            // NOTA DEL LEAD DEV: Aquí en el futuro deberás Instanciar el prefab de la carta
+            // en el Canvas para que el jugador la vea físicamente en su mano.
         }
     }
 
-    public void SelectCard(CardData card)
+    // NUEVA FUNCIÓN: Centraliza la lógica de clics. Reemplaza a SelectCard y DeselectCard.
+    public void HandleCardClick(Card clickedCard)
     {
-        if (!selectedCards.Contains(card))
+        // CASO 1: Clic en la carta que ya estaba activa. 
+        // ¡AHORA ESTO SIGNIFICA JUGAR LA CARTA!
+        if (activeCard == clickedCard)
         {
-            selectedCards.Add(card);
-            currentEnergy -= card.energyCost;
-            Debug.Log($"Carta seleccionada: {card.cardName}");
+            ConfirmSelectedCard(); // Jugamos la carta, aplicamos efectos y la destruimos
+            return;
         }
-    }
 
-    public void DeselectCard(CardData card)
-    {
-        if (selectedCards.Contains(card))
+        // CASO 2: Clic en una carta diferente. Soltamos la anterior automáticamente.
+        if (activeCard != null)
         {
-            selectedCards.Remove(card);
-            currentEnergy += card.energyCost;
-            Debug.Log($"Carta deseleccionada: {card.cardName}");
+            DeselectActiveCard();
+        }
+
+        // CASO 3: Intentar seleccionar la nueva carta
+        if (currentEnergy >= clickedCard.cardData.energyCost)
+        {
+            activeCard = clickedCard;
+            currentEnergy -= activeCard.cardData.energyCost;
+            
+            activeCard.SetVisualSelection(true); 
+            Debug.Log($"Carta seleccionada: {activeCard.cardData.cardName}");
+        }
+        else
+        {
+            Debug.Log("No tienes suficiente energía!");
         }
     }
 
-    public int GetSelectedCount()
+    // NUEVA FUNCIÓN: Limpia el estado de selección de manera segura y devuelve la energía.
+    public void DeselectActiveCard()
     {
-        return selectedCards.Count;
+        if (activeCard != null)
+        {
+            currentEnergy += activeCard.cardData.energyCost; 
+            activeCard.SetVisualSelection(false); 
+            Debug.Log($"Carta deseleccionada: {activeCard.cardData.cardName}");
+            
+            activeCard = null; 
+        }
     }
 
     public void ConfirmSelectedCard()
     {
-        if (selectedCards.Count == 0)
+        if (activeCard == null)
         {
             Debug.Log("No hay carta seleccionada!");
             return;
         }
 
-        CardData card = selectedCards[0];
+        CardData dataToPlay = activeCard.cardData;
 
-        // Aplicar efecto
-        ApplyCardEffect(card);
+        // 1. Aplicamos los efectos de la carta
+        ApplyCardEffect(dataToPlay);
 
-        // Sacar de la mano y descartar
-        hand.Remove(card);
-        discardPile.Add(card);
-        selectedCards.Clear();
+        // 2. Sacamos la carta de la mano y va al descarte
+        hand.Remove(dataToPlay);
+        discardPile.Add(dataToPlay);
+        
+        // 3. Destruimos el objeto visual en la escena
+        Destroy(activeCard.gameObject);
+        activeCard = null;
 
-        // Restar acción
+        // 4. Restamos la acción
         playerActionsLeft--;
-
-        // Robar carta nueva para reemplazar
-        DrawCards(1);
-
         Debug.Log($"Acción usada! Acciones restantes: {playerActionsLeft}");
-
-        // Si se acabaron las acciones, terminar turno automáticamente
-        if (playerActionsLeft <= 0)
-        {
-            Debug.Log("Sin acciones! Turno del enemigo.");
-            EndPlayerTurn();
-        }
     }
 
     void ApplyCardEffect(CardData card)
@@ -168,12 +189,17 @@ public class CombatManager : MonoBehaviour
     {
         if (!isPlayerTurn) return;
 
+        // Si el jugador le dio a "Terminar Turno" con una carta levantada, la soltamos
+        DeselectActiveCard();
+
         isPlayerTurn = false;
-        selectedCards.Clear();
 
         // Descartar mano
         discardPile.AddRange(hand);
         hand.Clear();
+
+        // NOTA DEL LEAD DEV: Aquí en el futuro deberás destruir todos los GameObjects
+        // de las cartas que sobraron en la mano física del jugador.
 
         Debug.Log("--- Turno del Enemigo ---");
         StartEnemyTurn();

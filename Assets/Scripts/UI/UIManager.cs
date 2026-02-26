@@ -46,11 +46,11 @@ public class UIManager : MonoBehaviour
     {
         UpdateStatsUI();
 
-        // Mostrar botón confirmar solo si hay carta seleccionada
+        // Simplemente verificamos si el Manager tiene una carta activa en memoria.
         if (confirmCardButton != null)
         {
             confirmCardButton.gameObject.SetActive(
-                CombatManager.Instance.GetSelectedCount() > 0
+                CombatManager.Instance.activeCard != null
             );
         }
 
@@ -118,5 +118,18 @@ public class UIManager : MonoBehaviour
     void OnEndTurnPressed()
     {
         CombatManager.Instance.EndPlayerTurn();
+    }
+
+    public void ClearHandVisuals()
+    {
+        foreach (GameObject obj in cardObjects)
+        {
+            if (obj != null) Destroy(obj);
+        }
+        
+        cardObjects.Clear();
+        
+        // Sincronizamos el contador para que el Update no intente redibujar fantasmas
+        lastHandCount = 0; 
     }
 }
