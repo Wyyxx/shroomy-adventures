@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class CombatManager : MonoBehaviour
 {
@@ -167,10 +168,15 @@ public class CombatManager : MonoBehaviour
     {
         Enemy enemy = FindFirstObjectByType<Enemy>();
 
-        if (card.damageAmount > 0 && enemy != null)
-        {
-            enemy.TakeDamage(card.damageAmount);
-            Debug.Log($"{card.cardName}: {card.damageAmount} daño!");
+        if (card.damageAmount > 0)
+        {            
+            if (enemy != null)
+            {
+                enemy.TakeDamage(card.damageAmount);
+                Debug.Log($"{card.cardName}: {card.damageAmount} daño!");
+            }
+
+            CheckForVictory();
         }
 
         if (card.blockAmount > 0)
@@ -214,5 +220,40 @@ public class CombatManager : MonoBehaviour
         }
 
         StartPlayerTurn();
+    }
+
+    public void CheckForVictory()
+    {
+        Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        bool allDead = true;
+        foreach (Enemy e in enemies)
+        {
+            if (e.currentHealth > 0) 
+            {
+                allDead = false;
+                break; 
+            }
+        }
+
+        if (allDead)
+        {
+            Debug.Log("<color=green>¡Victoria! Todos los enemigos derrotados.</color>");
+            EndCombatAndReturnToMap();
+        }
+    }
+
+    void EndCombatAndReturnToMap()
+    {
+        // En lugar de LoadScene, le decimos al mapa que nos regrese
+        if (MapManager.Instance != null)
+        {
+            MapManager.Instance.ReturnFromCombat();
+        }
+        else
+        {
+            Debug.LogError("No se encontró el MapManager. ¿Iniciaste el juego desde la escena del mapa?");
+            // Respaldo de emergencia en caso de que pruebes la escena de combate directamente:
+            SceneManager.LoadScene("MapScene"); 
+        }
     }
 }

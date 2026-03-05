@@ -5,7 +5,7 @@ public class MainMenuManager : MonoBehaviour
 {
     public void OnPlayPressed()
     {
-        SceneManager.LoadScene("CombatScene");
+        SceneManager.LoadScene("Mapa");
     }
 
     public void OnOptionsPressed()

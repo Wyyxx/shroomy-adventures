@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 public class MapManager : MonoBehaviour
@@ -26,6 +27,11 @@ public class MapManager : MonoBehaviour
 
     [Header("Editor de Conexiones")]
     public MapNode pendingConnectionNode; // Aquí guardamos el primer nodo seleccionado
+
+    [Header("Transición de Escenas")]
+    public Canvas mapCanvas; 
+    public Camera mapCamera; 
+    public GameObject mapEventSystem;
 
     void Awake()
     {
@@ -180,7 +186,26 @@ public class MapManager : MonoBehaviour
 
     // --- LÓGICA DE JUEGO (MOVIMIENTO) ---
 
-    void OnNodeSelected(MapNode selectedNode) => SetCurrentNode(selectedNode);
+    void OnNodeSelected(MapNode selectedNode)
+    {
+        // 1. Movemos al jugador en el mapa
+        SetCurrentNode(selectedNode);
+
+        // 2. Dependiendo del tipo de nodo, cargamos la escena correspondiente
+        if (selectedNode.nodeType == NodeType.Battle || 
+            selectedNode.nodeType == NodeType.MiniBoss || 
+            selectedNode.nodeType == NodeType.Boss)
+        {
+            Debug.Log($"Cargando CombatScene por nodo tipo: {selectedNode.nodeType}");
+            GoToCombat();
+        }
+        else
+        {
+            // Si es curación o tienda, tal vez quieras cargar otra escena o hacer un efecto aquí mismo
+            Debug.Log($"Llegaste a un nodo pacífico: {selectedNode.nodeType}");
+            // SceneManager.LoadScene("ShopScene"); // Ejemplo
+        }
+    }
 
     void SetCurrentNode(MapNode newNode)
     {
@@ -261,12 +286,9 @@ public class MapManager : MonoBehaviour
         ConnectNodes(currentNode, targetNode);
 
         // 4. Conexión Visual (Línea)
-        // Dibujamos la línea desde el JUGADOR hacia el OBJETIVO
         currentNode.ShowLineTo(targetNode); 
 
         // 5. ACTUALIZACIÓN DE ESTADO (El arreglo del bug)
-        // Como acabamos de crear un camino desde donde estamos,
-        // el destino se vuelve inmediatamente accesible.
         if (targetNode.currentState != NodeState.Visited)
         {
             targetNode.ChangeState(NodeState.Attainable);
@@ -276,5 +298,32 @@ public class MapManager : MonoBehaviour
         }
 
         Debug.Log($"<color=cyan>Puente creado: {currentNode.name} -> {targetNode.name}</color>");
+    }
+    public void GoToCombat()
+    {
+        Debug.Log("Ocultando mapa y cargando combate...");
+        
+        // 1. Apagamos todo
+        if (mapParent != null) mapParent.gameObject.SetActive(false);
+        if (mapCanvas != null) mapCanvas.gameObject.SetActive(false);
+        if (mapCamera != null) mapCamera.gameObject.SetActive(false);
+        if (mapEventSystem != null) mapEventSystem.SetActive(false); // Apagamos el conflicto de clics
+
+        // 2. Cargamos combate
+        SceneManager.LoadScene("CombatScene", LoadSceneMode.Additive);
+    }
+
+    public void ReturnFromCombat()
+    {
+        Debug.Log("Combate terminado, restaurando mapa...");
+
+        // 1. Descargamos combate
+        SceneManager.UnloadSceneAsync("CombatScene");
+
+        // 2. Encendemos todo
+        if (mapParent != null) mapParent.gameObject.SetActive(true);
+        if (mapCanvas != null) mapCanvas.gameObject.SetActive(true);
+        if (mapCamera != null) mapCamera.gameObject.SetActive(true);
+        if (mapEventSystem != null) mapEventSystem.SetActive(true); 
     }
 }
