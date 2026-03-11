@@ -197,7 +197,7 @@ public class MapManager : MonoBehaviour
             selectedNode.nodeType == NodeType.Boss)
         {
             Debug.Log($"Cargando CombatScene por nodo tipo: {selectedNode.nodeType}");
-            GoToCombat();
+            GoToCombat(selectedNode.nodeType);
         }
         else
         {
@@ -299,17 +299,35 @@ public class MapManager : MonoBehaviour
 
         Debug.Log($"<color=cyan>Puente creado: {currentNode.name} -> {targetNode.name}</color>");
     }
-    public void GoToCombat()
+    
+    public void GoToCombat(NodeType type)
     {
         Debug.Log("Ocultando mapa y cargando combate...");
         
-        // 1. Apagamos todo
+        if (PlayerRunData.Instance != null)
+            PlayerRunData.Instance.currentEncounterType = type;
+
+        // 1. Apagamos lo visual (Esto sí necesitas arrastrarlo en el inspector)
         if (mapParent != null) mapParent.gameObject.SetActive(false);
         if (mapCanvas != null) mapCanvas.gameObject.SetActive(false);
-        if (mapCamera != null) mapCamera.gameObject.SetActive(false);
-        if (mapEventSystem != null) mapEventSystem.SetActive(false); // Apagamos el conflicto de clics
+        
+        // 2. APAGADO AUTOMÁTICO DE CÁMARA (Audio Listener)
+        if (mapCamera != null) {
+            mapCamera.gameObject.SetActive(false);
+        } else {
+            // Si olvidaste asignarla, la busca y la apaga
+            Camera.main.gameObject.SetActive(false); 
+        }
 
-        // 2. Cargamos combate
+        // 3. APAGADO AUTOMÁTICO DE EVENT SYSTEM
+        if (mapEventSystem != null) {
+            mapEventSystem.SetActive(false);
+        } else {
+            // Si olvidaste asignarlo, busca el actual y lo apaga
+            UnityEngine.EventSystems.EventSystem currentEventSystem = UnityEngine.EventSystems.EventSystem.current;
+            if (currentEventSystem != null) currentEventSystem.gameObject.SetActive(false);
+        }
+
         SceneManager.LoadScene("CombatScene", LoadSceneMode.Additive);
     }
 

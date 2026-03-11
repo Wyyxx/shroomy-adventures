@@ -20,10 +20,14 @@ public class CombatManager : MonoBehaviour
     public List<CardData> deck = new List<CardData>();
     public List<CardData> hand = new List<CardData>();
     public List<CardData> discardPile = new List<CardData>();
+
+    [Header("Generación de Enemigos")]
+
+    public Transform[] enemySpawnPoints; 
     
-    // CAMBIO ARQUITECTÓNICO: Reemplazamos la lista de selectedCards por una única referencia al script físico.
-    [Header("Estado de Selección")]
-    public Card activeCard; 
+    public GameObject[] normalEnemies;
+    public GameObject[] miniBosses;
+    public GameObject[] bosses;
 
     private List<CardData> drawPile = new List<CardData>();
 
@@ -36,14 +40,27 @@ public class CombatManager : MonoBehaviour
     void Start()
     {
         InitializeDeck();
+        SpawnEnemies();
         StartPlayerTurn();
     }
 
     void InitializeDeck()
     {
-        drawPile = new List<CardData>(deck);
+        // 1. Verificamos si existe nuestra Mochila Global
+        if (PlayerRunData.Instance != null && PlayerRunData.Instance.masterDeck.Count > 0)
+        {
+            // Creamos una COPIA del mazo global para la pila de robar
+            drawPile = new List<CardData>(PlayerRunData.Instance.masterDeck);
+            Debug.Log($"Mazo cargado desde PlayerRunData con {drawPile.Count} cartas");
+        }
+        else
+        {
+            // Respaldo de emergencia (por si estás probando la escena de combate sola sin abrir el mapa)
+            drawPile = new List<CardData>(deck); 
+            Debug.LogWarning("Usando mazo de respaldo del CombatManager.");
+        }
+
         ShuffleDeck(drawPile);
-        Debug.Log($"Mazo inicializado con {drawPile.Count} cartas");
     }
 
     void ShuffleDeck(List<CardData> deckToShuffle)
@@ -63,9 +80,6 @@ public class CombatManager : MonoBehaviour
         currentEnergy = maxEnergy;
         playerActionsLeft = maxPlayerActions;
         Player.Instance.currentBlock = 0;
-        
-        // Limpiamos la carta activa en lugar de la lista
-        activeCard = null; 
         
         DrawCards(handSize);
         Debug.Log($"--- Turno del Jugador | Acciones: {playerActionsLeft} ---");
@@ -93,110 +107,9 @@ public class CombatManager : MonoBehaviour
         }
     }
 
-    // NUEVA FUNCIÓN: Centraliza la lógica de clics. Reemplaza a SelectCard y DeselectCard.
-    public void HandleCardClick(Card clickedCard)
-    {
-        // CASO 1: Clic en la carta que ya estaba activa. 
-        // ¡AHORA ESTO SIGNIFICA JUGAR LA CARTA!
-        if (activeCard == clickedCard)
-        {
-            ConfirmSelectedCard(); // Jugamos la carta, aplicamos efectos y la destruimos
-            return;
-        }
-
-        // CASO 2: Clic en una carta diferente. Soltamos la anterior automáticamente.
-        if (activeCard != null)
-        {
-            DeselectActiveCard();
-        }
-
-        // CASO 3: Intentar seleccionar la nueva carta
-        if (currentEnergy >= clickedCard.cardData.energyCost)
-        {
-            activeCard = clickedCard;
-            currentEnergy -= activeCard.cardData.energyCost;
-            
-            activeCard.SetVisualSelection(true); 
-            Debug.Log($"Carta seleccionada: {activeCard.cardData.cardName}");
-        }
-        else
-        {
-            Debug.Log("No tienes suficiente energía!");
-        }
-    }
-
-    // NUEVA FUNCIÓN: Limpia el estado de selección de manera segura y devuelve la energía.
-    public void DeselectActiveCard()
-    {
-        if (activeCard != null)
-        {
-            currentEnergy += activeCard.cardData.energyCost; 
-            activeCard.SetVisualSelection(false); 
-            Debug.Log($"Carta deseleccionada: {activeCard.cardData.cardName}");
-            
-            activeCard = null; 
-        }
-    }
-
-    public void ConfirmSelectedCard()
-    {
-        if (activeCard == null)
-        {
-            Debug.Log("No hay carta seleccionada!");
-            return;
-        }
-
-        CardData dataToPlay = activeCard.cardData;
-
-        // 1. Aplicamos los efectos de la carta
-        ApplyCardEffect(dataToPlay);
-
-        // 2. Sacamos la carta de la mano y va al descarte
-        hand.Remove(dataToPlay);
-        discardPile.Add(dataToPlay);
-        
-        // 3. Destruimos el objeto visual en la escena
-        Destroy(activeCard.gameObject);
-        activeCard = null;
-
-        // 4. Restamos la acción
-        playerActionsLeft--;
-        Debug.Log($"Acción usada! Acciones restantes: {playerActionsLeft}");
-    }
-
-    void ApplyCardEffect(CardData card)
-    {
-        Enemy enemy = FindFirstObjectByType<Enemy>();
-
-        if (card.damageAmount > 0)
-        {            
-            if (enemy != null)
-            {
-                enemy.TakeDamage(card.damageAmount);
-                Debug.Log($"{card.cardName}: {card.damageAmount} daño!");
-            }
-
-            CheckForVictory();
-        }
-
-        if (card.blockAmount > 0)
-        {
-            Player.Instance.GainBlock(card.blockAmount);
-            Debug.Log($"{card.cardName}: {card.blockAmount} bloqueo!");
-        }
-
-        if (card.drawAmount > 0)
-        {
-            DrawCards(card.drawAmount);
-        }
-    }
-
     public void EndPlayerTurn()
     {
         if (!isPlayerTurn) return;
-
-        // Si el jugador le dio a "Terminar Turno" con una carta levantada, la soltamos
-        DeselectActiveCard();
 
         isPlayerTurn = false;
 
@@ -226,9 +139,11 @@ public class CombatManager : MonoBehaviour
     {
         Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
         bool allDead = true;
+        
         foreach (Enemy e in enemies)
         {
-            if (e.currentHealth > 0) 
+            // EL CAMBIO CLAVE: Comprobamos que el objeto no sea nulo Y que su vida sea > 0
+            if (e != null && e.currentHealth > 0) 
             {
                 allDead = false;
                 break; 
@@ -254,6 +169,123 @@ public class CombatManager : MonoBehaviour
             Debug.LogError("No se encontró el MapManager. ¿Iniciaste el juego desde la escena del mapa?");
             // Respaldo de emergencia en caso de que pruebes la escena de combate directamente:
             SceneManager.LoadScene("MapScene"); 
+        }
+    }
+
+    void SpawnEnemies()
+    {
+        NodeType encounterType = NodeType.Battle; 
+        if (PlayerRunData.Instance != null)
+            encounterType = PlayerRunData.Instance.currentEncounterType;
+
+        // 2. Decidimos cuántos enemigos van a aparecer
+        int enemiesAmount = 1;
+
+        switch (encounterType)
+        {
+            case NodeType.Battle:
+                // Batalla normal: De 1 a 3 enemigos (Depende de cuántos puntos de spawn crees)
+                enemiesAmount = Random.Range(1, Mathf.Min(4, enemySpawnPoints.Length + 1));
+                break;
+            case NodeType.MiniBoss:
+                // Minijefe: 1 jefe y quizás 1 esbirro
+                enemiesAmount = Random.Range(1, Mathf.Min(3, enemySpawnPoints.Length + 1));
+                break;
+            case NodeType.Boss:
+                // El jefe suele estar solo al inicio
+                enemiesAmount = 1; 
+                break;
+        }
+
+        // 3. Spawneamos la cantidad decidida en los diferentes puntos
+        for (int i = 0; i < enemiesAmount; i++)
+        {
+            GameObject prefabToSpawn = null;
+
+            // Lógica para elegir quién aparece
+            if (encounterType == NodeType.Boss)
+            {
+                prefabToSpawn = bosses[Random.Range(0, bosses.Length)];
+            }
+            else if (encounterType == NodeType.MiniBoss && i == 0)
+            {
+                // El primer enemigo es el minijefe, los demás son normales
+                prefabToSpawn = miniBosses[Random.Range(0, miniBosses.Length)];
+            }
+            else
+            {
+                // Relleno de batallas normales o esbirros
+                prefabToSpawn = normalEnemies[Random.Range(0, normalEnemies.Length)];
+            }
+
+            // Instanciamos usando el punto de Spawn correspondiente a este ciclo [i]
+            if (prefabToSpawn != null && i < enemySpawnPoints.Length)
+            {
+                Instantiate(prefabToSpawn, enemySpawnPoints[i].position, Quaternion.identity);
+            }
+        }
+    }
+
+    public bool TryPlayCard(Card cardScript, Enemy target)
+    {
+        CardData data = cardScript.cardData;
+
+        // 1. Verificamos Energía y Acciones
+        if (currentEnergy < data.energyCost || playerActionsLeft <= 0)
+        {
+            Debug.Log("No tienes energía o acciones suficientes.");
+            return false; 
+        }
+
+        // 2. Verificamos Objetivo (¡Muy importante!)
+        // Si la carta hace daño y no hay enemigo (target == null), la jugada es inválida
+        if (data.damageAmount > 0 && target == null)
+        {
+            Debug.Log("Esta carta requiere un objetivo. Arrástrala sobre un enemigo.");
+            return false;
+        }
+
+        // --- SI LLEGAMOS AQUÍ, LA JUGADA ES VÁLIDA ---
+
+        // Cobramos el costo
+        currentEnergy -= data.energyCost;
+        playerActionsLeft--;
+
+        // Aplicamos el efecto
+        ApplyCardEffect(data, target);
+
+        // Movemos la carta al descarte
+        hand.Remove(data);
+        discardPile.Add(data);
+        
+        // Destruimos el objeto visual de la carta porque ya se jugó
+        Destroy(cardScript.gameObject);
+
+        // Retornamos true para que la carta sepa que NO debe regresar a la mano
+        return true; 
+    }
+
+    // APLICAR LOS EFECTOS
+    void ApplyCardEffect(CardData card, Enemy target)
+    {
+        // Daño a un enemigo específico
+        if (card.damageAmount > 0 && target != null)
+        {
+            target.TakeDamage(card.damageAmount);
+            Debug.Log($"{card.cardName} hizo {card.damageAmount} daño a {target.name}!");
+            
+            CheckForVictory(); // Comprobamos si lo matamos
+        }
+
+        // Efectos globales (Jugador)
+        if (card.blockAmount > 0)
+        {
+            Player.Instance.GainBlock(card.blockAmount);
+        }
+
+        if (card.drawAmount > 0)
+        {
+            DrawCards(card.drawAmount);
         }
     }
 }

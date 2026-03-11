@@ -1,17 +1,29 @@
 using UnityEngine;
-
+using UnityEngine.UI; // Importante para el Slider
+using TMPro; // Importante para el texto
 public class Enemy : Character
 {
     [Header("Enemy Info")]
     public string enemyName;
     public EnemyIntention currentIntention;
 
+    [Header("UI Local del Enemigo")]
+    public Slider localHealthBar;
+    public TextMeshProUGUI localHealthText;
+
     void Start()
     {
-        maxHealth = 50;
         currentHealth = maxHealth;
         currentBlock = 0;
         PrepareNextIntention();
+
+        if (localHealthBar != null)
+        {
+            localHealthBar.maxValue = maxHealth;
+            localHealthBar.value = currentHealth;
+        }
+        
+        UpdateHealthUI();
     }
 
     public void PerformAction()
@@ -44,7 +56,18 @@ public class Enemy : Character
 
     protected override void OnHealthChanged()
     {
+        // Esta función se dispara automáticamente cuando recibes daño o te curas (gracias a Character.cs)
+        UpdateHealthUI();
         Debug.Log($"{enemyName} - HP: {currentHealth}/{maxHealth} | Block: {currentBlock}");
+    }
+
+    void UpdateHealthUI()
+    {
+        if (localHealthBar != null)
+            localHealthBar.value = currentHealth;
+
+        if (localHealthText != null)
+            localHealthText.text = $"{currentHealth}/{maxHealth}";
     }
 
     protected override void Die()

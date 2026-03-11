@@ -14,17 +14,13 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI actionsText;
     public Slider playerHealthBar;
 
-    [Header("Panel del Enemigo")]
-    public Slider enemyHealthBar;
-    public TextMeshProUGUI enemyHealthText;
-
     [Header("Cartas")]
     public GameObject cardPrefab;
     public Transform handContainer;
 
     [Header("Botones")]
     public Button endTurnButton;
-    public Button confirmCardButton;
+    // ¡Adiós confirmCardButton!
 
     private List<GameObject> cardObjects = new List<GameObject>();
     private int lastHandCount = -1;
@@ -37,28 +33,31 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        endTurnButton.onClick.AddListener(OnEndTurnPressed);
-        confirmCardButton.onClick.AddListener(OnConfirmCardPressed);
-        confirmCardButton.gameObject.SetActive(false);
+        // Añadimos un escudo protector por si olvidas arrastrar el botón en el Inspector
+        if (endTurnButton != null)
+        {
+            endTurnButton.onClick.AddListener(OnEndTurnPressed);
+        }
+        else
+        {
+            Debug.LogWarning("UIManager: Falta asignar el botón de End Turn en el Inspector.");
+        }
     }
 
     void Update()
     {
         UpdateStatsUI();
 
-        // Simplemente verificamos si el Manager tiene una carta activa en memoria.
-        if (confirmCardButton != null)
-        {
-            confirmCardButton.gameObject.SetActive(
-                CombatManager.Instance.activeCard != null
-            );
-        }
+        if (CombatManager.Instance == null) return;
 
-        int currentHandCount = CombatManager.Instance.hand.Count;
-        if (currentHandCount != lastHandCount)
+        if (CombatManager.Instance.hand != null)
         {
-            lastHandCount = currentHandCount;
-            RefreshHandUI();
+            int currentHandCount = CombatManager.Instance.hand.Count;
+            if (currentHandCount != lastHandCount)
+            {
+                lastHandCount = currentHandCount;
+                RefreshHandUI();
+            }
         }
     }
 
@@ -84,15 +83,6 @@ public class UIManager : MonoBehaviour
                 actionsText.text = $"Acciones: {CombatManager.Instance.playerActionsLeft}/{CombatManager.Instance.maxPlayerActions}";
         }
 
-        Enemy enemy = FindFirstObjectByType<Enemy>();
-        if (enemy != null && enemyHealthBar != null)
-        {
-            enemyHealthBar.maxValue = enemy.maxHealth;
-            enemyHealthBar.value = enemy.currentHealth;
-
-            if (enemyHealthText != null)
-                enemyHealthText.text = $"{enemy.currentHealth}/{enemy.maxHealth}";
-        }
     }
 
     public void RefreshHandUI()
@@ -108,11 +98,6 @@ public class UIManager : MonoBehaviour
             card.InitializeCard(cardData);
             cardObjects.Add(cardObj);
         }
-    }
-
-    void OnConfirmCardPressed()
-    {
-        CombatManager.Instance.ConfirmSelectedCard();
     }
 
     void OnEndTurnPressed()
