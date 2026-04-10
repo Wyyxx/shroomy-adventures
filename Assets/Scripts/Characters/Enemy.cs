@@ -61,6 +61,18 @@ public class Enemy : Character
         Debug.Log($"{enemyName} - HP: {currentHealth}/{maxHealth} | Block: {currentBlock}");
     }
 
+    public override void TakeDamage(int damage)
+    {
+        base.TakeDamage(damage);
+
+        // Trigger hit animation
+        EnemySkin skin = GetComponent<EnemySkin>();
+        if (skin != null)
+        {
+            skin.PlayHitEffect();
+        }
+    }
+
     void UpdateHealthUI()
     {
         if (localHealthBar != null)
