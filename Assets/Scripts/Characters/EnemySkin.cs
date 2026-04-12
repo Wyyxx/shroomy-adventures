@@ -37,10 +37,16 @@ public class EnemySkin : MonoBehaviour
     private bool isPlayingHit = false;
     private Vector3 originalPosition;
     private string activeSkinName;
+    private bool skinReady = false;
 
     void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+        // Hide the sprite until the skin is assigned to prevent the default sprite from flashing
+        sr.sprite = null;
+
+        // Flip to face left
+        sr.flipX = true;
     }
 
     void Start()
@@ -74,10 +80,15 @@ public class EnemySkin : MonoBehaviour
                 break;
         }
 
+        // Filter out any null sprites from the arrays
+        currentIdleFrames = FilterNullSprites(currentIdleFrames);
+        currentHitFrames = FilterNullSprites(currentHitFrames);
+
         // Set the first frame immediately
         if (currentIdleFrames != null && currentIdleFrames.Length > 0)
         {
             sr.sprite = currentIdleFrames[0];
+            skinReady = true;
             Debug.Log($"EnemySkin: {activeSkinName} asignado con {currentIdleFrames.Length} frames de idle");
         }
         else
@@ -86,10 +97,24 @@ public class EnemySkin : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Removes any null entries from a sprite array to prevent flickering.
+    /// </summary>
+    private Sprite[] FilterNullSprites(Sprite[] sprites)
+    {
+        if (sprites == null) return null;
+
+        List<Sprite> filtered = new List<Sprite>();
+        foreach (Sprite s in sprites)
+        {
+            if (s != null) filtered.Add(s);
+        }
+        return filtered.Count > 0 ? filtered.ToArray() : null;
+    }
+
     void Update()
     {
-        if (isPlayingHit) return;
-
+        if (!skinReady || isPlayingHit) return;
         if (currentIdleFrames == null || currentIdleFrames.Length <= 1) return;
 
         frameTimer += Time.deltaTime;
@@ -97,7 +122,8 @@ public class EnemySkin : MonoBehaviour
 
         if (frameTimer >= frameInterval)
         {
-            frameTimer -= frameInterval;
+            // Only advance one frame per check, reset timer cleanly
+            frameTimer = 0f;
             currentFrame = (currentFrame + 1) % currentIdleFrames.Length;
             sr.sprite = currentIdleFrames[currentFrame];
         }
@@ -150,7 +176,7 @@ public class EnemySkin : MonoBehaviour
         sr.color = Color.white;
         transform.localPosition = originalPosition;
 
-        // Resume idle
+        // Resume idle from current frame
         isPlayingHit = false;
     }
 }
