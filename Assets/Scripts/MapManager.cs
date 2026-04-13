@@ -199,11 +199,14 @@ public class MapManager : MonoBehaviour
             Debug.Log($"Cargando CombatScene por nodo tipo: {selectedNode.nodeType}");
             GoToCombat(selectedNode.nodeType);
         }
+        else if (selectedNode.nodeType == NodeType.Shop) // ¡NUEVA LÍNEA!
+        {
+            Debug.Log($"Cargando ShopScene por nodo tipo: {selectedNode.nodeType}");
+            GoToShop(); 
+        }
         else
         {
-            // Si es curación o tienda, tal vez quieras cargar otra escena o hacer un efecto aquí mismo
             Debug.Log($"Llegaste a un nodo pacífico: {selectedNode.nodeType}");
-            // SceneManager.LoadScene("ShopScene"); // Ejemplo
         }
     }
 
@@ -331,14 +334,36 @@ public class MapManager : MonoBehaviour
         SceneManager.LoadScene("CombatScene", LoadSceneMode.Additive);
     }
 
-    public void ReturnFromCombat()
+    public void GoToShop()
     {
-        Debug.Log("Combate terminado, restaurando mapa...");
+        Debug.Log("Ocultando mapa y cargando tienda...");
+        
+        // 1. Apagamos lo visual
+        if (mapParent != null) mapParent.gameObject.SetActive(false);
+        if (mapCanvas != null) mapCanvas.gameObject.SetActive(false);
+        
+        // 2. APAGADO AUTOMÁTICO DE CÁMARA (Audio Listener)
+        if (mapCamera != null) {
+            mapCamera.gameObject.SetActive(false);
+        } else {
+            Camera.main.gameObject.SetActive(false); 
+        }
 
-        // 1. Descargamos combate
-        SceneManager.UnloadSceneAsync("CombatScene");
+        // 3. APAGADO AUTOMÁTICO DE EVENT SYSTEM
+        if (mapEventSystem != null) {
+            mapEventSystem.SetActive(false);
+        } else {
+            UnityEngine.EventSystems.EventSystem currentEventSystem = UnityEngine.EventSystems.EventSystem.current;
+            if (currentEventSystem != null) currentEventSystem.gameObject.SetActive(false);
+        }
 
-        // 2. Encendemos todo
+        SceneManager.LoadScene("ShopScene", LoadSceneMode.Additive);
+    }
+
+    public void ReturnToMap(string sceneToUnload)
+    {
+        UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(sceneToUnload);
+
         if (mapParent != null) mapParent.gameObject.SetActive(true);
         if (mapCanvas != null) mapCanvas.gameObject.SetActive(true);
         if (mapCamera != null) mapCamera.gameObject.SetActive(true);

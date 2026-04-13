@@ -162,7 +162,7 @@ public class CombatManager : MonoBehaviour
         // En lugar de LoadScene, le decimos al mapa que nos regrese
         if (MapManager.Instance != null)
         {
-            MapManager.Instance.ReturnFromCombat();
+            MapManager.Instance.ReturnToMap("CombatScene");
         }
         else
         {
