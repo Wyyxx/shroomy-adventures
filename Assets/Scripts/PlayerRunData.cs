@@ -15,9 +15,6 @@ public class PlayerRunData : MonoBehaviour
     [Header("Estado Actual de la Run")]
     public NodeType currentEncounterType;
 
-    [Header("Economía")]
-    public int currentGold = 50; // Oro inicial
-
     public List<CardData> masterDeck = new List<CardData>(); 
 
     void Awake()

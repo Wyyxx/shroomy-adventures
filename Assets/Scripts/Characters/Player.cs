@@ -45,10 +45,16 @@ public class Player : Character
 
     protected override void Die()
     {
-        Debug.Log("¡Muriste! Fin de la partida.");
-        
-        // Aquí en el futuro cargarás la pantalla de Game Over.
-        // También será el momento de destruir el PlayerRunData para empezar una "Run" limpia:
-        // if (PlayerRunData.Instance != null) Destroy(PlayerRunData.Instance.gameObject);
+        Debug.Log("¡Muriste! Te consumió el Cobalto.");
+
+        // Mostrar pantalla de muerte
+        if (DeathScreenManager.Instance != null)
+        {
+            DeathScreenManager.Instance.ShowDeathScreen();
+        }
+        else
+        {
+            Debug.LogError("No se encontró DeathScreenManager en la escena.");
+        }
     }
 }

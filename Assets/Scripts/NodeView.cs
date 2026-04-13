@@ -80,6 +80,10 @@ public class NodeView : MonoBehaviour
         {
             sr.color = colorHover;
             transform.localScale = Vector3.one * scaleHover;
+
+            // Cambiar cursor a hover
+            if (CursorManager.Instance != null)
+                CursorManager.Instance.SetHover();
         }
     }
 
@@ -91,6 +95,13 @@ public class NodeView : MonoBehaviour
         }
     }
 
-    void OnMouseExit() => RefreshVisuals();
+    void OnMouseExit()
+    {
+        RefreshVisuals();
+
+        // Restaurar cursor normal
+        if (CursorManager.Instance != null)
+            CursorManager.Instance.SetNormal();
+    }
     void OnMouseDown() => mapNode.ClickNode();
 }

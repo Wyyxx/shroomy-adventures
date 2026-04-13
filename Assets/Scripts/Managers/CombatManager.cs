@@ -159,20 +159,17 @@ public class CombatManager : MonoBehaviour
 
     void EndCombatAndReturnToMap()
     {
-        // Generar recompensa de oro (ej. 15 a 30)
-        int goldEarned = Random.Range(15, 31);
-        if (PlayerRunData.Instance != null)
-        {
-            PlayerRunData.Instance.currentGold += goldEarned;
-            Debug.Log($"Combate ganado. Oro obtenido: {goldEarned}. Total: {PlayerRunData.Instance.currentGold}");
-        }
-
-        UIManager.Instance.ClearHandVisuals();
-
+        // En lugar de LoadScene, le decimos al mapa que nos regrese
         if (MapManager.Instance != null)
-            MapManager.Instance.ReturnToMap("CombatScene");
+        {
+            MapManager.Instance.ReturnFromCombat();
+        }
         else
+        {
+            Debug.LogError("No se encontró el MapManager. ¿Iniciaste el juego desde la escena del mapa?");
+            // Respaldo de emergencia en caso de que pruebes la escena de combate directamente:
             SceneManager.LoadScene("MapScene"); 
+        }
     }
 
     void SpawnEnemies()
