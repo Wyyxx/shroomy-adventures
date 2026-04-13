@@ -186,26 +186,46 @@ public class MapManager : MonoBehaviour
 
     // --- LÓGICA DE JUEGO (MOVIMIENTO) ---
 
+    // 1. Modificar OnNodeSelected para detectar la tienda
     void OnNodeSelected(MapNode selectedNode)
     {
-        // 1. Movemos al jugador en el mapa
         SetCurrentNode(selectedNode);
 
-        // 2. Dependiendo del tipo de nodo, cargamos la escena correspondiente
-        if (selectedNode.nodeType == NodeType.Battle || 
-            selectedNode.nodeType == NodeType.MiniBoss || 
-            selectedNode.nodeType == NodeType.Boss)
+        if (selectedNode.nodeType == NodeType.Battle || selectedNode.nodeType == NodeType.MiniBoss || selectedNode.nodeType == NodeType.Boss)
         {
-            Debug.Log($"Cargando CombatScene por nodo tipo: {selectedNode.nodeType}");
             GoToCombat(selectedNode.nodeType);
         }
-        else
+        else if (selectedNode.nodeType == NodeType.Shop)
         {
-            // Si es curación o tienda, tal vez quieras cargar otra escena o hacer un efecto aquí mismo
-            Debug.Log($"Llegaste a un nodo pacífico: {selectedNode.nodeType}");
-            // SceneManager.LoadScene("ShopScene"); // Ejemplo
+            GoToShop(); // Nueva derivación
         }
     }
+
+    // 2. Añadir el método de carga (Idéntico estructuralmente a GoToCombat)
+    public void GoToShop()
+    {
+        Debug.Log("Cargando Tienda...");
+        if (mapParent != null) mapParent.gameObject.SetActive(false);
+        if (mapCanvas != null) mapCanvas.gameObject.SetActive(false);
+        
+        // APAGADO AUTOMÁTICO DE CÁMARA (Audio Listener) Y EVENT SYSTEM
+        if (mapCamera != null) {
+            mapCamera.gameObject.SetActive(false);
+        } else {
+            Camera.main.gameObject.SetActive(false); 
+        }
+
+        if (mapEventSystem != null) {
+            mapEventSystem.SetActive(false);
+        } else {
+            UnityEngine.EventSystems.EventSystem currentEventSystem = UnityEngine.EventSystems.EventSystem.current;
+            if (currentEventSystem != null) currentEventSystem.gameObject.SetActive(false);
+        }
+
+        UnityEngine.SceneManagement.SceneManager.LoadScene("ShopScene", UnityEngine.SceneManagement.LoadSceneMode.Additive);
+    }
+
+
 
     void SetCurrentNode(MapNode newNode)
     {
@@ -331,14 +351,13 @@ public class MapManager : MonoBehaviour
         SceneManager.LoadScene("CombatScene", LoadSceneMode.Additive);
     }
 
-    public void ReturnFromCombat()
+    // 3. Modificar ReturnFromCombat para que sea genérico o crear uno nuevo
+    public void ReturnToMap(string sceneToUnload)
     {
-        Debug.Log("Combate terminado, restaurando mapa...");
+        // Cerrar la escena que le digamos (ej: "ShopScene")
+        UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(sceneToUnload);
 
-        // 1. Descargamos combate
-        SceneManager.UnloadSceneAsync("CombatScene");
-
-        // 2. Encendemos todo
+        // Reactivar elementos del mapa
         if (mapParent != null) mapParent.gameObject.SetActive(true);
         if (mapCanvas != null) mapCanvas.gameObject.SetActive(true);
         if (mapCamera != null) mapCamera.gameObject.SetActive(true);
