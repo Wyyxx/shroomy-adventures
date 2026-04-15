@@ -188,25 +188,29 @@ public class MapManager : MonoBehaviour
 
     void OnNodeSelected(MapNode selectedNode)
     {
-        // 1. Movemos al jugador en el mapa
         SetCurrentNode(selectedNode);
 
-        // 2. Dependiendo del tipo de nodo, cargamos la escena correspondiente
         if (selectedNode.nodeType == NodeType.Battle || 
             selectedNode.nodeType == NodeType.MiniBoss || 
             selectedNode.nodeType == NodeType.Boss)
         {
-            Debug.Log($"Cargando CombatScene por nodo tipo: {selectedNode.nodeType}");
             GoToCombat(selectedNode.nodeType);
         }
-        else if (selectedNode.nodeType == NodeType.Shop) // ¡NUEVA LÍNEA!
+        else if (selectedNode.nodeType == NodeType.Shop)
         {
-            Debug.Log($"Cargando ShopScene por nodo tipo: {selectedNode.nodeType}");
-            GoToShop(); 
+            GoToShop();
         }
-        else
+        else if (selectedNode.nodeType == NodeType.Healing) // NUEVA INTERCEPCIÓN
         {
-            Debug.Log($"Llegaste a un nodo pacífico: {selectedNode.nodeType}");
+            Debug.Log("Abriendo Pop-up de curación...");
+            if (HealingScreenManager.Instance != null)
+            {
+                HealingScreenManager.Instance.ShowPopup();
+            }
+            else
+            {
+                Debug.LogError("Falta el HealingScreenManager en la escena.");
+            }
         }
     }
 

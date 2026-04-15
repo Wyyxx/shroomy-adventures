@@ -47,14 +47,10 @@ public class Player : Character
     {
         Debug.Log("¡Muriste! Te consumió el Cobalto.");
 
-        // Mostrar pantalla de muerte
-        if (DeathScreenManager.Instance != null)
+        // Delegamos el control al CombatManager para que cambie de Fase
+        if (CombatManager.Instance != null)
         {
-            DeathScreenManager.Instance.ShowDeathScreen();
-        }
-        else
-        {
-            Debug.LogError("No se encontró DeathScreenManager en la escena.");
+            CombatManager.Instance.LoseCombat();
         }
     }
 }

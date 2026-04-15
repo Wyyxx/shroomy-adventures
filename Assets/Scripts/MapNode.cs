@@ -76,7 +76,18 @@ public class MapNode : MonoBehaviour
         }
     }
 
-    // --- INTERACCIÓN ---
+    void OnMouseDown()
+    {
+        // EL ESCUDO: Si el ratón está sobre un elemento de interfaz gráfica (Canvas/Panel), abortar.
+        if (UnityEngine.EventSystems.EventSystem.current != null && 
+            UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+        {
+            return; 
+        }
+
+        ClickNode();
+    }
+
     public void ClickNode()
     {
         if (currentState == NodeState.Attainable)

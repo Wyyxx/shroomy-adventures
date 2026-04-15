@@ -63,8 +63,9 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (!CombatManager.Instance.isPlayerTurn) return;
-
+        // NUEVA VALIDACIÓN:
+        if (CombatManager.Instance.currentState != CombatManager.CombatState.PlayerTurn) return;
+        
         // 1. Guardamos de dónde salió para regresarla si fallamos
         originalPosition = transform.position;
         originalParent = transform.parent;
@@ -79,15 +80,16 @@ public class Card : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (!CombatManager.Instance.isPlayerTurn) return;
-
+        // NUEVA VALIDACIÓN:
+        if (CombatManager.Instance.currentState != CombatManager.CombatState.PlayerTurn) return;
         // La carta sigue al mouse
         transform.position = Input.mousePosition; 
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (!CombatManager.Instance.isPlayerTurn) return;
+        // NUEVA VALIDACIÓN:
+        if (CombatManager.Instance.currentState != CombatManager.CombatState.PlayerTurn) return;
 
         // 1. Volvemos a hacer la carta sólida para futuros clics
         canvasGroup.blocksRaycasts = true; 

@@ -14,7 +14,6 @@ public class CombatManager : MonoBehaviour
     [Header("Estado Actual")]
     public int currentEnergy;
     public int playerActionsLeft;
-    public bool isPlayerTurn = false;
 
     [Header("Referencias")]
     public List<CardData> deck = new List<CardData>();
@@ -30,6 +29,11 @@ public class CombatManager : MonoBehaviour
     public GameObject[] bosses;
 
     private List<CardData> drawPile = new List<CardData>();
+
+    public enum CombatState { Setup, PlayerTurn, EnemyTurn, Victory, Defeat }
+    
+    [Header("Estado Actual")]
+    public CombatState currentState; // Reemplaza la lógica suelta de 'isPlayerTurn'
 
     void Awake()
     {
@@ -76,7 +80,8 @@ public class CombatManager : MonoBehaviour
 
     public void StartPlayerTurn()
     {
-        isPlayerTurn = true;
+        if (currentState == CombatState.Defeat || currentState == CombatState.Victory) return;
+        currentState = CombatState.PlayerTurn;
         currentEnergy = maxEnergy;
         playerActionsLeft = maxPlayerActions;
         Player.Instance.currentBlock = 0;
@@ -109,9 +114,9 @@ public class CombatManager : MonoBehaviour
 
     public void EndPlayerTurn()
     {
-        if (!isPlayerTurn) return;
+        if (currentState != CombatState.PlayerTurn) return;
 
-        isPlayerTurn = false;
+        currentState = CombatState.EnemyTurn;
 
         // Descartar mano
         discardPile.AddRange(hand);
@@ -142,7 +147,6 @@ public class CombatManager : MonoBehaviour
         
         foreach (Enemy e in enemies)
         {
-            // EL CAMBIO CLAVE: Comprobamos que el objeto no sea nulo Y que su vida sea > 0
             if (e != null && e.currentHealth > 0) 
             {
                 allDead = false;
@@ -150,10 +154,9 @@ public class CombatManager : MonoBehaviour
             }
         }
 
-        if (allDead)
+        if (allDead && currentState != CombatState.Victory)
         {
-            Debug.Log("<color=green>¡Victoria! Todos los enemigos derrotados.</color>");
-            EndCombatAndReturnToMap();
+            WinCombat();
         }
     }
 
@@ -221,13 +224,17 @@ public class CombatManager : MonoBehaviour
             // Instanciamos usando el punto de Spawn correspondiente a este ciclo [i]
             if (prefabToSpawn != null && i < enemySpawnPoints.Length)
             {
-                Instantiate(prefabToSpawn, enemySpawnPoints[i].position, Quaternion.identity);
+                // Al añadir "enemySpawnPoints[i]" al final, le estamos diciendo a Unity
+                // que coloque al enemigo DENTRO del objeto del SpawnPoint correspondiente.
+                Instantiate(prefabToSpawn, enemySpawnPoints[i].position, Quaternion.identity, enemySpawnPoints[i]);
             }
         }
     }
 
     public bool TryPlayCard(Card cardScript, Enemy target)
     {
+        if (currentState != CombatState.PlayerTurn) return false; // Bloqueo estricto
+
         CardData data = cardScript.cardData;
 
         // 1. Verificamos Energía y Acciones
@@ -286,6 +293,44 @@ public class CombatManager : MonoBehaviour
         if (card.drawAmount > 0)
         {
             DrawCards(card.drawAmount);
+        }
+    }
+
+    // FASE 1: VICTORIA
+    public void WinCombat()
+    {
+        currentState = CombatState.Victory;
+        Debug.Log("<color=green>¡Victoria! Todos los enemigos derrotados.</color>");
+
+        // Limpiamos las cartas de la pantalla para que no estorben
+        UIManager.Instance.ClearHandVisuals();
+
+        // Calculamos la recompensa aleatoria
+        int goldEarned = Random.Range(15, 31);
+
+        // Mostramos la pantalla de recompensas
+        if (RewardScreenManager.Instance != null)
+        {
+            RewardScreenManager.Instance.ShowRewards(goldEarned);
+        }
+        else
+        {
+            Debug.LogWarning("No hay RewardScreenManager. Regresando al mapa directamente.");
+            EndCombatAndReturnToMap();
+        }
+    }
+
+    // FASE 2: DERROTA
+    public void LoseCombat()
+    {
+        if (currentState == CombatState.Defeat) return;
+        
+        currentState = CombatState.Defeat;
+        Debug.Log("<color=red>El jugador ha muerto. Transición a pantalla de muerte.</color>");
+        
+        if (DeathScreenManager.Instance != null)
+        {
+            DeathScreenManager.Instance.ShowDeathScreen();
         }
     }
 }

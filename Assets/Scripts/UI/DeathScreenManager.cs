@@ -41,22 +41,18 @@ public class DeathScreenManager : MonoBehaviour
 
     void OnMainMenuPressed()
     {
-        // Destruir los datos de la run para empezar limpio
         if (PlayerRunData.Instance != null)
             Destroy(PlayerRunData.Instance.gameObject);
 
-        // Si la escena de combate fue cargada aditivamente, descargamos todo
-        // y cargamos el menú principal de forma limpia
-        SceneManager.LoadScene("MainMenu");
+        // LoadSceneMode.Single destruye TODAS las escenas aditivas activas
+        SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
     }
 
     void OnNewGamePressed()
     {
-        // Destruir los datos de la run para empezar limpio
         if (PlayerRunData.Instance != null)
             Destroy(PlayerRunData.Instance.gameObject);
 
-        // Cargar directamente la escena del mapa para una nueva partida
-        SceneManager.LoadScene("Mapa");
+        SceneManager.LoadScene("Mapa", LoadSceneMode.Single);
     }
 }
