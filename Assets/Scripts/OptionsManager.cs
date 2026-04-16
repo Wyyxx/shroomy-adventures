@@ -15,6 +15,8 @@ public class OptionsManager : MonoBehaviour
     [Header("General")]
     public Button btnPantallaCompleta;
     public Slider sliderVolumen;
+    public TMP_Dropdown dropdownGraficos;
+    public Button btnCerrar;
 
     // Colores pestañas
     private Color tabActivo = new Color(0.2f, 0.5f, 0.6f, 1f);
@@ -33,6 +35,20 @@ public class OptionsManager : MonoBehaviour
 
         // Volumen
         sliderVolumen.onValueChanged.AddListener(SetVolumen);
+
+        // Graficos
+        if (dropdownGraficos != null)
+        {
+            dropdownGraficos.ClearOptions();
+            dropdownGraficos.AddOptions(new System.Collections.Generic.List<string> { "Bajo", "Medio", "Alto" });
+            dropdownGraficos.onValueChanged.AddListener(SetGraficos);
+        }
+
+        // Cerrar
+        if (btnCerrar != null)
+        {
+            btnCerrar.onClick.AddListener(CerrarOpciones);
+        }
 
         // Cargar valores guardados
         CargarOpciones();
@@ -66,16 +82,32 @@ public class OptionsManager : MonoBehaviour
         PlayerPrefs.SetFloat("Volumen", valor);
     }
 
+    void SetGraficos(int index)
+    {
+        QualitySettings.SetQualityLevel(index, true);
+        PlayerPrefs.SetInt("Graficos", index);
+    }
+
     void CargarOpciones()
     {
+        // Fullscreen
         isFullscreen = PlayerPrefs.GetInt("Fullscreen", 1) == 1;
         Screen.fullScreen = isFullscreen;
 
         var texto = btnPantallaCompleta.GetComponentInChildren<TextMeshProUGUI>();
         texto.text = isFullscreen ? "Pantalla Completa: ON" : "Pantalla Completa: OFF";
 
+        // Volumen
         sliderVolumen.value = PlayerPrefs.GetFloat("Volumen", 1f);
         AudioListener.volume = sliderVolumen.value;
+
+        // Graficos
+        int graficos = PlayerPrefs.GetInt("Graficos", 2); // Alto por defecto
+        QualitySettings.SetQualityLevel(graficos, true);
+        if (dropdownGraficos != null)
+        {
+            dropdownGraficos.value = graficos;
+        }
     }
 
     public void CerrarOpciones()
