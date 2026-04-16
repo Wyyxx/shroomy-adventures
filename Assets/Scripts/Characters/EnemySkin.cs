@@ -7,8 +7,14 @@ using System.Collections.Generic;
 /// Attach to the Enemy prefab alongside the SpriteRenderer.
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
+
 public class EnemySkin : MonoBehaviour
 {
+    public enum EnemyVisualType { Lizard, Shaman, Spider, Thief, Minotaur }
+    
+    [Header("Tipo Visual Fijo")]
+    public EnemyVisualType myVisualType;
+    
     [Header("Skins Disponibles (Idle Sprite Sheets)")]
     public Sprite[] lizardIdle;
     public Sprite[] shamanIdle;
@@ -56,30 +62,31 @@ public class EnemySkin : MonoBehaviour
     {
         originalPosition = transform.localPosition;
 
-        // Pick a random skin (0-3)
-        int skinIndex = Random.Range(0, 4);
-
-        switch (skinIndex)
+       switch (myVisualType)
         {
-            case 0:
+            case EnemyVisualType.Lizard:
                 activeSkinName = "Lizard";
                 currentIdleFrames = lizardIdle;
                 currentHitFrames = lizardHit;
                 break;
-            case 1:
+            case EnemyVisualType.Shaman:
                 activeSkinName = "Shaman";
                 currentIdleFrames = shamanIdle;
                 currentHitFrames = null;
                 break;
-            case 2:
+            case EnemyVisualType.Spider:
                 activeSkinName = "Spider";
                 currentIdleFrames = spiderIdle;
                 currentHitFrames = null;
                 break;
-            case 3:
+            case EnemyVisualType.Thief:
                 activeSkinName = "Thief";
                 currentIdleFrames = thiefIdle;
                 currentHitFrames = null;
+                break;
+            case EnemyVisualType.Minotaur:
+                activeSkinName = "Minotaur";
+                // Asigna aquí los frames del minotauro cuando los tengas
                 break;
         }
 
@@ -107,7 +114,7 @@ public class EnemySkin : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"EnemySkin: No se encontraron sprites idle para skin index {skinIndex}");
+            Debug.LogWarning($"EnemySkin: No se asignaron frames de idle para {activeSkinName}");
         }
     }
 

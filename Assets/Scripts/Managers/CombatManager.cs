@@ -2,6 +2,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
+[System.Serializable]
+public class EncounterDef
+{
+    public string name; // Ej: "Pandilla del bosque"
+    public GameObject[] enemiesToSpawn; // Arrastras [Araña, Araña, Ladrón]
+}
+
 public class CombatManager : MonoBehaviour
 {
     public static CombatManager Instance;
@@ -24,9 +31,10 @@ public class CombatManager : MonoBehaviour
 
     public Transform[] enemySpawnPoints; 
     
-    public GameObject[] normalEnemies;
-    public GameObject[] miniBosses;
-    public GameObject[] bosses;
+    [Header("Formaciones Predefinidas")]
+    public EncounterDef[] easyBattles;   // Nodos iniciales
+    public EncounterDef[] mediumBattles; // Nodos intermedios
+    public EncounterDef[] bossBattles;   // Nodos de Jefe
 
     private List<CardData> drawPile = new List<CardData>();
 
@@ -130,15 +138,34 @@ public class CombatManager : MonoBehaviour
     }
 
     void StartEnemyTurn()
+{
+    Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+    
+    foreach (Enemy enemy in enemies)
     {
-        Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
-        foreach (Enemy enemy in enemies)
+        if (enemy == null) continue;
+
+        // 1. Procesar veneno
+        enemy.ProcessStartOfTurnEffects();
+
+        // 2. IMPORTANTE: Verificar victoria inmediatamente después del veneno
+        // Si el veneno mató al último enemigo, no queremos que el turno siga.
+        CheckForVictory(); 
+        if (currentState == CombatState.Victory) return;
+
+        // 3. Si sigue vivo y no hemos ganado, el enemigo actúa
+        if (enemy.currentHealth > 0)
         {
             enemy.PerformAction();
         }
+    }
 
+    // Solo si no hubo victoria tras las acciones de los enemigos, regresamos al jugador
+    if (currentState != CombatState.Victory)
+    {
         StartPlayerTurn();
     }
+}
 
     public void CheckForVictory()
     {
@@ -178,55 +205,36 @@ public class CombatManager : MonoBehaviour
     void SpawnEnemies()
     {
         NodeType encounterType = NodeType.Battle; 
-        if (PlayerRunData.Instance != null)
-            encounterType = PlayerRunData.Instance.currentEncounterType;
+        if (PlayerRunData.Instance != null) encounterType = PlayerRunData.Instance.currentEncounterType;
 
-        // 2. Decidimos cuántos enemigos van a aparecer
-        int enemiesAmount = 1;
+        EncounterDef selectedEncounter = null;
 
-        switch (encounterType)
+        // Elegimos el grupo basado en el tipo de nodo
+        if (encounterType == NodeType.Boss)
         {
-            case NodeType.Battle:
-                // Batalla normal: De 1 a 3 enemigos (Depende de cuántos puntos de spawn crees)
-                enemiesAmount = Random.Range(1, Mathf.Min(4, enemySpawnPoints.Length + 1));
-                break;
-            case NodeType.MiniBoss:
-                // Minijefe: 1 jefe y quizás 1 esbirro
-                enemiesAmount = Random.Range(1, Mathf.Min(3, enemySpawnPoints.Length + 1));
-                break;
-            case NodeType.Boss:
-                // El jefe suele estar solo al inicio
-                enemiesAmount = 1; 
-                break;
+            selectedEncounter = bossBattles[Random.Range(0, bossBattles.Length)];
+        }
+        else if (encounterType == NodeType.MiniBoss)
+        {
+            selectedEncounter = mediumBattles[Random.Range(0, mediumBattles.Length)];
+        }
+        else 
+        {
+            // Opcional: Aquí en el futuro puedes leer en qué piso vas para dar 'easyBattles' o 'mediumBattles'
+            selectedEncounter = easyBattles[Random.Range(0, easyBattles.Length)];
         }
 
-        // 3. Spawneamos la cantidad decidida en los diferentes puntos
-        for (int i = 0; i < enemiesAmount; i++)
+        // Spawneamos físicamente al grupo seleccionado
+        if (selectedEncounter != null)
         {
-            GameObject prefabToSpawn = null;
-
-            // Lógica para elegir quién aparece
-            if (encounterType == NodeType.Boss)
+            Debug.Log($"Iniciando encuentro: {selectedEncounter.name}");
+            
+            for (int i = 0; i < selectedEncounter.enemiesToSpawn.Length; i++)
             {
-                prefabToSpawn = bosses[Random.Range(0, bosses.Length)];
-            }
-            else if (encounterType == NodeType.MiniBoss && i == 0)
-            {
-                // El primer enemigo es el minijefe, los demás son normales
-                prefabToSpawn = miniBosses[Random.Range(0, miniBosses.Length)];
-            }
-            else
-            {
-                // Relleno de batallas normales o esbirros
-                prefabToSpawn = normalEnemies[Random.Range(0, normalEnemies.Length)];
-            }
-
-            // Instanciamos usando el punto de Spawn correspondiente a este ciclo [i]
-            if (prefabToSpawn != null && i < enemySpawnPoints.Length)
-            {
-                // Al añadir "enemySpawnPoints[i]" al final, le estamos diciendo a Unity
-                // que coloque al enemigo DENTRO del objeto del SpawnPoint correspondiente.
-                Instantiate(prefabToSpawn, enemySpawnPoints[i].position, Quaternion.identity, enemySpawnPoints[i]);
+                if (i < enemySpawnPoints.Length)
+                {
+                    Instantiate(selectedEncounter.enemiesToSpawn[i], enemySpawnPoints[i].position, Quaternion.identity, enemySpawnPoints[i]);
+                }
             }
         }
     }
@@ -244,9 +252,9 @@ public class CombatManager : MonoBehaviour
             return false; 
         }
 
-        // 2. Verificamos Objetivo (¡Muy importante!)
-        // Si la carta hace daño y no hay enemigo (target == null), la jugada es inválida
-        if (data.damageAmount > 0 && target == null)
+        // 2. Verificamos Objetivo
+        // Si hace daño, no es de área (isAoE), y no tocaste a un enemigo, la jugada es inválida
+        if (data.damageAmount > 0 && !data.isAoE && target == null)
         {
             Debug.Log("Esta carta requiere un objetivo. Arrástrala sobre un enemigo.");
             return false;
@@ -261,11 +269,17 @@ public class CombatManager : MonoBehaviour
         // Aplicamos el efecto
         ApplyCardEffect(data, target);
 
-        // Movemos la carta al descarte
-        hand.Remove(data);
+        // --- LÓGICA DE DESCARTE CORREGIDA ---
+        // Buscamos de derecha a izquierda para borrar la instancia exacta que soltaste
+        int exactIndex = hand.LastIndexOf(data);
+        if (exactIndex != -1)
+        {
+            hand.RemoveAt(exactIndex);
+        }
+        
         discardPile.Add(data);
         
-        // Destruimos el objeto visual de la carta porque ya se jugó
+        // Destruimos el objeto visual de la carta
         Destroy(cardScript.gameObject);
 
         // Retornamos true para que la carta sepa que NO debe regresar a la mano
@@ -275,24 +289,57 @@ public class CombatManager : MonoBehaviour
     // APLICAR LOS EFECTOS
     void ApplyCardEffect(CardData card, Enemy target)
     {
-        // Daño a un enemigo específico
-        if (card.damageAmount > 0 && target != null)
+        // 1. Daño (Individual o AoE)
+        if (card.damageAmount > 0)
         {
-            target.TakeDamage(card.damageAmount);
-            Debug.Log($"{card.cardName} hizo {card.damageAmount} daño a {target.name}!");
-            
-            CheckForVictory(); // Comprobamos si lo matamos
+            if (card.isAoE)
+            {
+                // Busca a todos los enemigos vivos y dales daño
+                Enemy[] allEnemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+                foreach (Enemy e in allEnemies)
+                {
+                    if (e != null && e.currentHealth > 0)
+                    {
+                        ProcessDamageAndLifesteal(card, e);
+                    }
+                }
+                Debug.Log($"{card.cardName} hizo Daño de Área.");
+            }
+            else if (target != null)
+            {
+                // Daño individual estándar
+                ProcessDamageAndLifesteal(card, target);
+            }
         }
 
-        // Efectos globales (Jugador)
-        if (card.blockAmount > 0)
+        // 2. Efectos Globales
+        if (card.blockAmount > 0) Player.Instance.GainBlock(card.blockAmount);
+        if (card.drawAmount > 0) DrawCards(card.drawAmount);
+
+        // 3. Veneno (Requiere nuevo componente en Enemy)
+        if (card.poisonAmount > 0 && card.poisonDuration > 0 && target != null)
         {
-            Player.Instance.GainBlock(card.blockAmount);
+            target.ApplyPoison(card.poisonAmount, card.poisonDuration);
+            Debug.Log($"Envenenado por {card.poisonAmount} daño durante {card.poisonDuration} turnos.");
         }
 
-        if (card.drawAmount > 0)
+        CheckForVictory(); 
+    }
+
+    // Función auxiliar para calcular Robo de Vida
+    void ProcessDamageAndLifesteal(CardData card, Enemy e)
+    {
+        int actualDamageDealt = Mathf.Min(card.damageAmount, e.currentHealth + e.currentBlock); // No robar vida del overkill
+        e.TakeDamage(card.damageAmount);
+
+        if (card.lifestealPercentage > 0)
         {
-            DrawCards(card.drawAmount);
+            int healAmount = Mathf.FloorToInt(actualDamageDealt * card.lifestealPercentage);
+            if (healAmount > 0)
+            {
+                Player.Instance.currentHealth = Mathf.Min(Player.Instance.currentHealth + healAmount, Player.Instance.maxHealth);
+                Debug.Log($"Robaste {healAmount} de HP.");
+            }
         }
     }
 
@@ -303,7 +350,7 @@ public class CombatManager : MonoBehaviour
         Debug.Log("<color=green>¡Victoria! Todos los enemigos derrotados.</color>");
 
         // Limpiamos las cartas de la pantalla para que no estorben
-        UIManager.Instance.ClearHandVisuals();
+        //UIManager.Instance.ClearHandVisuals();
 
         // Calculamos la recompensa aleatoria
         int goldEarned = Random.Range(15, 31);

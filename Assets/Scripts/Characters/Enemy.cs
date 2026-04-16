@@ -12,6 +12,10 @@ public class Enemy : Character
     public TextMeshProUGUI localHealthText;
     public TextMeshProUGUI localNameText;
 
+    [Header("Estados Alterados")]
+    public int currentPoisonDamage;
+    public int remainingPoisonTurns;
+
     void Start()
     {
         currentHealth = maxHealth;
@@ -48,14 +52,10 @@ public class Enemy : Character
         PrepareNextIntention();
     }
 
-    void PrepareNextIntention()
+    protected virtual void PrepareNextIntention()
     {
-        // Por ahora siempre ataca por 10
-        currentIntention = new EnemyIntention
-        {
-            type = IntentionType.Attack,
-            value = 10
-        };
+        // Valor por defecto si olvidas programar un hijo
+        currentIntention = new EnemyIntention { type = IntentionType.Attack, value = 5 };
     }
 
     protected override void OnHealthChanged()
@@ -92,5 +92,23 @@ public class Enemy : Character
         Destroy(gameObject);
     }
 
+    public void ApplyPoison(int damage, int turns)
+    {
+        // El veneno se acumula (Stacks) como en Slay the Spire
+        currentPoisonDamage += damage; 
+        remainingPoisonTurns = Mathf.Max(remainingPoisonTurns, turns);
+    }
 
+    // Llamado por CombatManager AL INICIAR el turno enemigo, ANTES de PerformAction
+    public void ProcessStartOfTurnEffects()
+    {
+        if (remainingPoisonTurns > 0)
+        {
+            Debug.Log($"{enemyName} sufre {currentPoisonDamage} por Veneno.");
+            TakeDamage(currentPoisonDamage);
+            remainingPoisonTurns--;
+
+            if (remainingPoisonTurns <= 0) currentPoisonDamage = 0; // Se cura del veneno
+        }
+    }
 }
