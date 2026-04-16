@@ -1,4 +1,4 @@
-# Carpetas generadas por Unity (NO SUBIR)
+# Carpetas generadas por Unity
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
@@ -6,8 +6,10 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
 
-# Carpetas especificas del proyecto
+# Carpetas especificas del proyecto (Solo si tu proyecto esta dentro de una subcarpeta)
 Howlhund/[Ll]ibrary/
 Howlhund/[Tt]emp/
 Howlhund/[Oo]bj/
@@ -19,6 +21,7 @@ Howlhund/[Uu]ser[Ss]ettings/
 # Archivos de sistema y IDE
 .vs/
 .idea/
+.gradle/
 *.csproj
 *.sln
 *.suo
@@ -29,9 +32,19 @@ Howlhund/[Uu]ser[Ss]ettings/
 *.booproj
 *.svd
 *.pdb
+*.mdb
 *.opendb
 *.VC.db
 
+# Archivos meta temporales de Unity
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
 # Builds y basura de OS
 .DS_Store
+.DS_Store?
+._*
+.Trashes
+ehthumbs.db
 Thumbs.db

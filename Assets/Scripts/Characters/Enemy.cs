@@ -10,6 +10,11 @@ public class Enemy : Character
     [Header("UI Local del Enemigo")]
     public Slider localHealthBar;
     public TextMeshProUGUI localHealthText;
+    public TextMeshProUGUI localNameText;
+
+    [Header("Estados Alterados")]
+    public int currentPoisonDamage;
+    public int remainingPoisonTurns;
 
     void Start()
     {
@@ -22,7 +27,10 @@ public class Enemy : Character
             localHealthBar.maxValue = maxHealth;
             localHealthBar.value = currentHealth;
         }
-        
+
+        if (localNameText != null)
+            localNameText.text = enemyName;
+
         UpdateHealthUI();
     }
 
@@ -44,14 +52,10 @@ public class Enemy : Character
         PrepareNextIntention();
     }
 
-    void PrepareNextIntention()
+    protected virtual void PrepareNextIntention()
     {
-        // Por ahora siempre ataca por 10
-        currentIntention = new EnemyIntention
-        {
-            type = IntentionType.Attack,
-            value = 10
-        };
+        // Valor por defecto si olvidas programar un hijo
+        currentIntention = new EnemyIntention { type = IntentionType.Attack, value = 5 };
     }
 
     protected override void OnHealthChanged()
@@ -59,6 +63,18 @@ public class Enemy : Character
         // Esta función se dispara automáticamente cuando recibes daño o te curas (gracias a Character.cs)
         UpdateHealthUI();
         Debug.Log($"{enemyName} - HP: {currentHealth}/{maxHealth} | Block: {currentBlock}");
+    }
+
+    public override void TakeDamage(int damage)
+    {
+        base.TakeDamage(damage);
+
+        // Trigger hit animation
+        EnemySkin skin = GetComponent<EnemySkin>();
+        if (skin != null)
+        {
+            skin.PlayHitEffect();
+        }
     }
 
     void UpdateHealthUI()
@@ -74,5 +90,25 @@ public class Enemy : Character
     {
         Debug.Log($"{enemyName} murio!");
         Destroy(gameObject);
+    }
+
+    public void ApplyPoison(int damage, int turns)
+    {
+        // El veneno se acumula (Stacks) como en Slay the Spire
+        currentPoisonDamage += damage; 
+        remainingPoisonTurns = Mathf.Max(remainingPoisonTurns, turns);
+    }
+
+    // Llamado por CombatManager AL INICIAR el turno enemigo, ANTES de PerformAction
+    public void ProcessStartOfTurnEffects()
+    {
+        if (remainingPoisonTurns > 0)
+        {
+            Debug.Log($"{enemyName} sufre {currentPoisonDamage} por Veneno.");
+            TakeDamage(currentPoisonDamage);
+            remainingPoisonTurns--;
+
+            if (remainingPoisonTurns <= 0) currentPoisonDamage = 0; // Se cura del veneno
+        }
     }
 }

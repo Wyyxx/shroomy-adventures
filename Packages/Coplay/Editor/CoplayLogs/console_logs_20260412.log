@@ -1,0 +1,168 @@
+2026-04-12 19:18:52.149 -06:00 [INF] Initializing Coplay services
+2026-04-12 19:18:54.674 -06:00 [DBG] Found 1 glTF importer(s), no conflict detected
+2026-04-12 19:18:54.678 -06:00 [INF] Initializing EditorThreadHelper
+2026-04-12 19:18:54.678 -06:00 [INF] EditorThreadHelper initialized successfully
+2026-04-12 19:18:54.713 -06:00 [INF] Enabling console error detection
+2026-04-12 19:18:54.727 -06:00 [INF] ConsoleDebugButtonService initializing
+2026-04-12 19:18:54.736 -06:00 [INF] ConsoleDebugButtonService initialized
+2026-04-12 19:18:54.738 -06:00 [INF] RunInBackgroundStartupTask initialized - will enable background execution in play mode
+2026-04-12 19:19:08.899 -06:00 [INF] No existing action records JSON file found.
+2026-04-12 19:19:17.411 -06:00 [INF] Coplay container created
+2026-04-12 19:19:17.415 -06:00 [INF] Debug button created, initial visibility: visible
+2026-04-12 19:19:17.416 -06:00 [INF] Copy button created
+2026-04-12 19:19:17.418 -06:00 [INF] Debug With AI button successfully injected into console
+2026-04-12 19:19:17.419 -06:00 [INF] Subscribed to error detection
+2026-04-12 19:20:50.612 -06:00 [INF] Found 1 startup errors via direct console query - caching for downstream use
+2026-04-12 19:21:31.881 -06:00 [INF] Found git repository in parent at C:\Users\David Meléndez\Documents\GitHub\howlbound
+2026-04-12 19:21:31.934 -06:00 [INF] No state file found, maintaining Initialized state for fresh installation
+2026-04-12 19:21:31.940 -06:00 [INF] Checkpoint directory does not exist yet. Skipping cleanup.
+2026-04-12 19:21:31.943 -06:00 [INF] Cleanup task completed
+2026-04-12 19:21:32.413 -06:00 [DBG] PowerShell script failed with exit code 1: #< CLIXML
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04"><Obj S="progress" RefId="0"><TN RefId="0"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N="SourceId">1</I64><PR N="Record"><AV>Preparando módulos para el primer uso.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj></Objs>
+2026-04-12 19:21:33.233 -06:00 [INF] Successfully registered Coplay AUMID 'Coplay.UnityEditor' for toast notifications
+2026-04-12 19:21:33.233 -06:00 [INF] Using Coplay AUMID for toast notifications: Coplay.UnityEditor
+2026-04-12 19:21:33.257 -06:00 [INF] No request found, returning empty.
+2026-04-12 19:21:33.281 -06:00 [INF] No MCP servers configuration found
+2026-04-12 19:21:33.282 -06:00 [INF] MCP host initialized
+2026-04-12 19:21:33.317 -06:00 [INF] Context file not found: C:\Users\David Meléndez\Documents\GitHub\howlbound\Packages\Coplay\Editor\CoplayLogs\context_items.json
+2026-04-12 19:21:33.319 -06:00 [INF] Checking for dependencies in: C:\Users\David Meléndez\Documents\GitHub\howlbound\Packages\Coplay\Editor\Binaries
+2026-04-12 19:21:33.319 -06:00 [INF] Ripgrep directory not found
+2026-04-12 19:21:33.359 -06:00 [INF] [Mode: Normal] User prompt: Debug the following errors and then check for compilation errors.
+
+Found 5 error(s) in console. Showing the 5 most recent:
+
+Error #1:
+Message: Failed to load 'C:/Users/David Meléndez/Documents/GitHub/howlbound/Assets/Scenes/MainMenu.unity'. File may be corrupted or was serialized with a newer version of Unity.
+
+
+Error #2:
+Message: [Worker0] Failed to load 'Assets/Scenes/CombatScene.unity'. File may be corrupted or was serialized with a newer version of Unity.
+
+
+Error #3:
+Message: [Worker1] Failed to load 'Assets/Scenes/MainMenu.unity'. File may be corrupted or was serialized with a newer version of Unity.
+
+
+Error #4:
+Message: [Worker0] Failed to load 'Assets/Prefabs/Enemy.prefab'. File may be corrupted or was serialized with a newer version of Unity.
+
+
+Error #5:
+Message: [Worker1] Failed to load 'Assets/Scenes/Mapa.unity'. File may be corrupted or was serialized with a newer version of Unity.
+
+
+
+2026-04-12 19:21:33.363 -06:00 [INF] Coplay State Change: Initialized -> WaitingForAI
+2026-04-12 19:21:33.466 -06:00 [INF] Checking for dependencies in: C:\Users\David Meléndez\Documents\GitHub\howlbound\Packages\Coplay\Editor\Binaries
+2026-04-12 19:21:33.466 -06:00 [INF] Ripgrep directory not found
+2026-04-12 19:21:33.469 -06:00 [INF] Showing dependency download screen
+2026-04-12 19:21:36.081 -06:00 [INF] Listed 167 recursive files and directories matching glob pattern '**/*' in C:/Users/David Meléndez/Documents/GitHub/howlbound. (Result truncated to first 200 items. Use more specific patterns or explore subdirectories.) Total tokens of result: 1730
+2026-04-12 19:21:36.143 -06:00 [INF] Updating thread  to Debug the following errors and then check for compilation errors.
+
+Found 5 error(s) in console. Show...
+2026-04-12 19:21:36.386 -06:00 [ERR] An error occurred while sending message to LLM
+System.Net.Http.HttpRequestException: 404 (Not Found)
+  at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode () [0x0002a] in <0e8be619c8cf410faa29ffea0c8c3344>:0 
+  at Coplay.Common.CoplayApi.CoplayApiClient.UpdateThread (System.String threadId, System.String name, Coplay.Models.Assistants.AssistantMode assistantMode, System.Threading.CancellationToken cancellationToken) [0x000bc] in <3d9831ae726840229456f99260d3d7af>:0 
+  at Coplay.Services.Chat.ChatThreads.UpdateThread (System.String threadId, System.String name, Coplay.Models.Assistants.AssistantMode mode, System.Threading.CancellationToken cancellationToken) [0x000e0] in <3d9831ae726840229456f99260d3d7af>:0 
+  at Coplay.Controllers.Assistants.AssistantController.SendMessageToLLM (System.String message, System.Collections.Generic.Dictionary`2[TKey,TValue] context, System.String model, Coplay.Models.Assistants.AssistantMode assistantMode, System.Boolean codeModeEnabled) [0x00102] in <3d9831ae726840229456f99260d3d7af>:0 
+  at Coplay.Controllers.Assistants.CoplayChatController.SendMessageToLLM (System.String message, Coplay.Models.Context.FullContext context, System.Boolean overrideWithNormalMode) [0x0016b] in <3d9831ae726840229456f99260d3d7af>:0 
+  at Coplay.Coplay.MessageSubmitted (System.String userInput, System.Boolean overrideWithNormalMode) [0x00153] in <3d9831ae726840229456f99260d3d7af>:0 
+2026-04-12 19:21:36.647 -06:00 [INF] Creating Binaries directory at: C:\Users\David Meléndez\Documents\GitHub\howlbound\Packages\Coplay\Editor\Binaries
+2026-04-12 19:21:37.934 -06:00 [INF] Checking for executable in: C:\Users\David Meléndez\Documents\GitHub\howlbound\Packages\Coplay\Editor\Binaries\ripgrep\x86_64
+2026-04-12 19:21:37.935 -06:00 [INF] Looking for executable at: C:\Users\David Meléndez\Documents\GitHub\howlbound\Packages\Coplay\Editor\Binaries\ripgrep\x86_64\rg.exe
+2026-04-12 19:21:37.935 -06:00 [INF] Set executable permissions successfully
+2026-04-12 19:21:38.081 -06:00 [INF] Dependency installation completed successfully
+2026-04-12 19:21:40.634 -06:00 [INF] Successfully got device ID: cpl-device-9033939e-74b4-49aa-a6c9-d1faa8b810ea
+2026-04-12 19:22:03.897 -06:00 [INF] Placeholder text would be: What can I help with?
+2026-04-12 19:22:03.906 -06:00 [INF] Loading threads
+2026-04-12 19:22:03.909 -06:00 [INF] Successfully logged in
+2026-04-12 19:22:05.455 -06:00 [INF] Creating thread
+2026-04-12 19:22:05.455 -06:00 [INF] No current thread to save checkpoint hashes from
+2026-04-12 19:22:05.801 -06:00 [INF] Loading thread messages for thread cpl_thread_3c8357fd_ecd8_4024_80a6_68b6706cea8b
+2026-04-12 19:22:05.804 -06:00 [INF] Saving state
+2026-04-12 19:22:05.920 -06:00 [INF] FunctionExecutionController: Loaded thread with 0 function calls from chat history.
+2026-04-12 19:22:05.922 -06:00 [INF] Clearing state model
+2026-04-12 19:22:05.922 -06:00 [INF] Coplay State Change: WaitingForAI -> Initialized
+2026-04-12 19:22:05.926 -06:00 [INF] OnThreadChanged
+2026-04-12 19:22:05.927 -06:00 [INF] Handling state change: WaitingForAI
+2026-04-12 19:22:05.966 -06:00 [INF] Handling state change: Initialized
+2026-04-12 19:22:22.767 -06:00 [INF] Clearing All
+2026-04-12 19:22:22.767 -06:00 [INF] Clearing state model
+2026-04-12 19:22:22.767 -06:00 [WRN] You are setting to the same state: Initialized
+2026-04-12 19:22:22.781 -06:00 [INF] Cleaned up all thumbnail textures
+2026-04-12 19:22:22.784 -06:00 [INF] AssistantController: Dispose called
+2026-04-12 19:22:22.785 -06:00 [INF] FunctionExecutionController: Dispose called
+2026-04-12 19:22:22.786 -06:00 [INF] Saving state
+2026-04-12 19:22:49.028 -06:00 [DBG] Stored original runInBackground value: False
+2026-04-12 19:22:49.147 -06:00 [INF] Deinitializing Coplay services
+2026-04-12 19:22:49.148 -06:00 [INF] ConsoleDebugButtonService disposing
+2026-04-12 19:22:49.150 -06:00 [INF] Unsubscribed from error detection
+2026-04-12 19:22:49.171 -06:00 [INF] EditorThreadHelper disposed
+2026-04-12 19:22:53.901 -06:00 [INF] Initializing Coplay services
+2026-04-12 19:22:54.821 -06:00 [DBG] Found 1 glTF importer(s), no conflict detected
+2026-04-12 19:22:54.826 -06:00 [INF] Initializing EditorThreadHelper
+2026-04-12 19:22:54.826 -06:00 [INF] EditorThreadHelper initialized successfully
+2026-04-12 19:22:54.854 -06:00 [INF] Enabling console error detection
+2026-04-12 19:22:54.867 -06:00 [INF] ConsoleDebugButtonService initializing
+2026-04-12 19:22:54.875 -06:00 [INF] ConsoleDebugButtonService initialized
+2026-04-12 19:22:54.875 -06:00 [INF] RunInBackgroundStartupTask initialized - will enable background execution in play mode
+2026-04-12 19:22:58.729 -06:00 [INF] Enabled Application.runInBackground for play mode - Unity will continue running when editor loses focus
+2026-04-12 19:22:58.883 -06:00 [INF] Coplay container created
+2026-04-12 19:22:58.887 -06:00 [INF] Debug button created, initial visibility: hidden
+2026-04-12 19:22:58.888 -06:00 [INF] Copy button created
+2026-04-12 19:22:58.889 -06:00 [INF] Debug With AI button successfully injected into console
+2026-04-12 19:22:58.890 -06:00 [INF] Subscribed to error detection
+2026-04-12 19:22:58.942 -06:00 [INF] No startup errors found after delayed check
+2026-04-12 19:23:14.813 -06:00 [DBG] Restored Application.runInBackground to original value: False
+2026-04-12 19:26:02.020 -06:00 [INF] Initializing Coplay services
+2026-04-12 19:26:03.177 -06:00 [DBG] Found 1 glTF importer(s), no conflict detected
+2026-04-12 19:26:03.182 -06:00 [INF] Initializing EditorThreadHelper
+2026-04-12 19:26:03.182 -06:00 [INF] EditorThreadHelper initialized successfully
+2026-04-12 19:26:03.220 -06:00 [INF] Enabling console error detection
+2026-04-12 19:26:03.240 -06:00 [INF] ConsoleDebugButtonService initializing
+2026-04-12 19:26:03.249 -06:00 [INF] ConsoleDebugButtonService initialized
+2026-04-12 19:26:03.251 -06:00 [INF] RunInBackgroundStartupTask initialized - will enable background execution in play mode
+2026-04-12 19:26:12.365 -06:00 [INF] Coplay container created
+2026-04-12 19:26:12.381 -06:00 [INF] Debug button created, initial visibility: visible
+2026-04-12 19:26:12.382 -06:00 [INF] Copy button created
+2026-04-12 19:26:12.382 -06:00 [INF] Debug With AI button successfully injected into console
+2026-04-12 19:26:12.384 -06:00 [INF] Subscribed to error detection
+2026-04-12 19:27:06.534 -06:00 [INF] Found 1 startup errors via direct console query - caching for downstream use
+2026-04-12 19:34:43.620 -06:00 [INF] No existing action records JSON file found.
+2026-04-12 19:37:21.652 -06:00 [INF] Initializing Coplay services
+2026-04-12 19:37:22.884 -06:00 [DBG] Found 1 glTF importer(s), no conflict detected
+2026-04-12 19:37:22.888 -06:00 [INF] Initializing EditorThreadHelper
+2026-04-12 19:37:22.889 -06:00 [INF] EditorThreadHelper initialized successfully
+2026-04-12 19:37:22.928 -06:00 [INF] Enabling console error detection
+2026-04-12 19:37:22.944 -06:00 [INF] ConsoleDebugButtonService initializing
+2026-04-12 19:37:22.954 -06:00 [INF] ConsoleDebugButtonService initialized
+2026-04-12 19:37:22.956 -06:00 [INF] RunInBackgroundStartupTask initialized - will enable background execution in play mode
+2026-04-12 19:37:28.928 -06:00 [INF] Coplay container created
+2026-04-12 19:37:28.962 -06:00 [INF] Debug button created, initial visibility: visible
+2026-04-12 19:37:28.964 -06:00 [INF] Copy button created
+2026-04-12 19:37:28.964 -06:00 [INF] Debug With AI button successfully injected into console
+2026-04-12 19:37:28.966 -06:00 [INF] Subscribed to error detection
+2026-04-12 19:37:29.058 -06:00 [INF] Found 1 startup errors via direct console query - caching for downstream use
+2026-04-12 19:39:06.439 -06:00 [INF] No existing action records JSON file found.
+2026-04-12 19:39:55.096 -06:00 [DBG] Stored original runInBackground value: False
+2026-04-12 19:39:55.225 -06:00 [INF] Deinitializing Coplay services
+2026-04-12 19:39:55.227 -06:00 [INF] ConsoleDebugButtonService disposing
+2026-04-12 19:39:55.231 -06:00 [INF] Unsubscribed from error detection
+2026-04-12 19:39:55.253 -06:00 [INF] EditorThreadHelper disposed
+2026-04-12 19:39:59.863 -06:00 [INF] Initializing Coplay services
+2026-04-12 19:40:00.724 -06:00 [DBG] Found 1 glTF importer(s), no conflict detected
+2026-04-12 19:40:00.728 -06:00 [INF] Initializing EditorThreadHelper
+2026-04-12 19:40:00.728 -06:00 [INF] EditorThreadHelper initialized successfully
+2026-04-12 19:40:00.753 -06:00 [INF] Enabling console error detection
+2026-04-12 19:40:00.768 -06:00 [INF] ConsoleDebugButtonService initializing
+2026-04-12 19:40:00.776 -06:00 [INF] ConsoleDebugButtonService initialized
+2026-04-12 19:40:00.777 -06:00 [INF] RunInBackgroundStartupTask initialized - will enable background execution in play mode
+2026-04-12 19:40:04.316 -06:00 [INF] Enabled Application.runInBackground for play mode - Unity will continue running when editor loses focus
+2026-04-12 19:40:04.531 -06:00 [INF] Coplay container created
+2026-04-12 19:40:04.533 -06:00 [INF] Debug button created, initial visibility: hidden
+2026-04-12 19:40:04.535 -06:00 [INF] Copy button created
+2026-04-12 19:40:04.536 -06:00 [INF] Debug With AI button successfully injected into console
+2026-04-12 19:40:04.537 -06:00 [INF] Subscribed to error detection
+2026-04-12 19:40:04.583 -06:00 [INF] No startup errors found after delayed check
+2026-04-12 19:40:11.646 -06:00 [DBG] Restored Application.runInBackground to original value: False

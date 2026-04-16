@@ -3,6 +3,8 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
+    public GameObject optionsPanel;
+
     public void OnPlayPressed()
     {
         SceneManager.LoadScene("Mapa");
@@ -10,6 +12,6 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnOptionsPressed()
     {
-        Debug.Log("Opciones proximamente!");
+        optionsPanel.SetActive(true);
     }
 }
