@@ -140,6 +140,9 @@ public class MapManager : MonoBehaviour
     MapNode CreateNode(int xIndex, int yIndex, Vector3 pos)
     {
         GameObject obj = Instantiate(nodePrefab, pos, Quaternion.identity, mapParent);
+        
+        obj.transform.localScale = nodePrefab.transform.localScale;
+
         MapNode node = obj.GetComponent<MapNode>();
         node.Init(xIndex, yIndex, System.Guid.NewGuid().ToString().Substring(0, 5));
         return node;

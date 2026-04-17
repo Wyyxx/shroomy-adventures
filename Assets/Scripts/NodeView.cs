@@ -7,6 +7,7 @@ public class NodeView : MonoBehaviour
 {
     private MapNode mapNode;
     private SpriteRenderer sr;
+    private Vector3 baseScale;
 
     [Header("Sprites por Tipo")]
     public Sprite spriteBattle;
@@ -37,11 +38,12 @@ public class NodeView : MonoBehaviour
     {
         mapNode = GetComponent<MapNode>();
         sr = GetComponent<SpriteRenderer>();
+        baseScale = transform.localScale; // Memoriza la escala del Prefab
     }
 
     public void RefreshVisuals()
     {
-        transform.localScale = Vector3.one;
+        transform.localScale = baseScale;
 
         // Asignar sprite según el tipo de nodo
         Sprite typeSprite = GetSpriteByType(mapNode.nodeType);
@@ -67,8 +69,11 @@ public class NodeView : MonoBehaviour
         Color typeColor = GetColorByType(mapNode.nodeType);
         if (mapNode.currentState == NodeState.Locked)
         {
-            // Truco: Lo mostramos un poco más oscuro (transparente) si está lejos
-            typeColor.a = 0.5f; 
+            // Mezclamos el color del nodo con Negro puro (0.6f = 60% oscuro)
+            typeColor = Color.Lerp(typeColor, Color.black, 0.6f); 
+            
+            // Garantizamos que sea 100% sólido (nada de transparencia)
+            typeColor.a = 1.0f; 
         }
         else // Attainable
         {
@@ -108,7 +113,7 @@ public class NodeView : MonoBehaviour
         if (mapNode.currentState == NodeState.Attainable)
         {
             sr.color = colorHover;
-            transform.localScale = Vector3.one * scaleHover;
+            transform.localScale = baseScale * scaleHover;
 
             // Cambiar cursor a hover
             if (CursorManager.Instance != null)
