@@ -1,4 +1,6 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Scales a SpriteRenderer to always cover the full camera view.
@@ -8,18 +10,84 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class BackgroundScaler : MonoBehaviour
 {
+    private Coroutine fitRoutine;
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        RestartFitRoutine();
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        if (fitRoutine != null)
+        {
+            StopCoroutine(fitRoutine);
+            fitRoutine = null;
+        }
+    }
+
     private void Start()
     {
-        FitToCamera();
+        RestartFitRoutine();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        RestartFitRoutine();
+    }
+
+    private void RestartFitRoutine()
+    {
+        if (!isActiveAndEnabled)
+        {
+            return;
+        }
+
+        if (fitRoutine != null)
+        {
+            StopCoroutine(fitRoutine);
+        }
+
+        fitRoutine = StartCoroutine(FitWhenCameraIsReady());
+    }
+
+    private IEnumerator FitWhenCameraIsReady()
+    {
+        const float timeoutSeconds = 2f;
+        float elapsed = 0f;
+
+        while (elapsed < timeoutSeconds)
+        {
+            if (TryFitToCamera())
+            {
+                fitRoutine = null;
+                yield break;
+            }
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        // One last attempt in case the camera became available on the timeout frame.
+        TryFitToCamera();
+        fitRoutine = null;
     }
 
     public void FitToCamera()
     {
-        Camera cam = Camera.main;
-        if (cam == null) return;
+        RestartFitRoutine();
+    }
+
+    public bool TryFitToCamera()
+    {
+        Camera cam = ResolveCamera();
+        if (cam == null) return false;
 
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr == null || sr.sprite == null) return;
+        if (sr == null || sr.sprite == null) return false;
 
         // Get the camera's visible area in world units
         float cameraHeight = 2f * cam.orthographicSize;
@@ -37,5 +105,25 @@ public class BackgroundScaler : MonoBehaviour
 
         // Center on camera position
         transform.position = new Vector3(cam.transform.position.x, cam.transform.position.y, 0f);
+        return true;
+    }
+
+    private Camera ResolveCamera()
+    {
+        if (Camera.main != null && Camera.main.isActiveAndEnabled)
+        {
+            return Camera.main;
+        }
+
+        Camera[] cameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+        foreach (Camera camera in cameras)
+        {
+            if (camera.isActiveAndEnabled)
+            {
+                return camera;
+            }
+        }
+
+        return null;
     }
 }

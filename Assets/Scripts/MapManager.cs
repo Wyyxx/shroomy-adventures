@@ -38,8 +38,25 @@ public class MapManager : MonoBehaviour
         Instance = this;
     }
 
-    private void OnEnable() => MapNode.OnNodeClicked += OnNodeSelected;
-    private void OnDisable() => MapNode.OnNodeClicked -= OnNodeSelected;
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        MapNode.OnNodeClicked += OnNodeSelected;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        MapNode.OnNodeClicked -= OnNodeSelected;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "ShopScene" || scene.name == "CombatScene")
+        {
+            RefreshSceneBackgrounds(scene);
+        }
+    }
 
     void Start()
     {
@@ -372,5 +389,17 @@ public class MapManager : MonoBehaviour
         if (mapCanvas != null) mapCanvas.gameObject.SetActive(true);
         if (mapCamera != null) mapCamera.gameObject.SetActive(true);
         if (mapEventSystem != null) mapEventSystem.SetActive(true); 
+    }
+
+    private void RefreshSceneBackgrounds(Scene scene)
+    {
+        foreach (GameObject rootObject in scene.GetRootGameObjects())
+        {
+            BackgroundScaler[] scalers = rootObject.GetComponentsInChildren<BackgroundScaler>(true);
+            foreach (BackgroundScaler scaler in scalers)
+            {
+                scaler.FitToCamera();
+            }
+        }
     }
 }
